@@ -1,0 +1,19 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!221 &22100000
+AnimatorOverrideController:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_Name: SlidingDoorLargeController
+  m_Controller: {fileID: 9100000, guid: 88a0409e239a38f4a922395086501561, type: 2}
+  m_Clips:
+  - m_OriginalClip: {fileID: 7400000, guid: 8cd1ca9cec1e63e41ab008f51218e21f, type: 2}
+    m_OverrideClip: {fileID: 7400000, guid: 8cd1ca9cec1e63e41ab008f51218e21f, type: 2}
+  - m_OriginalClip: {fileID: 7400000, guid: 5aa1ee50c0a74a24190ecd6b5d2603ed, type: 2}
+    m_OverrideClip: {fileID: 7400000, guid: 5aa1ee50c0a74a24190ecd6b5d2603ed, type: 2}
+  - m_OriginalClip: {fileID: 7400000, guid: 1ecfe5c6d229ec441a4541eac0e5ebe8, type: 2}
+    m_OverrideClip: {fileID: 7400000, guid: 1ecfe5c6d229ec441a4541eac0e5ebe8, type: 2}
+  - m_OriginalClip: {fileID: 7400000, guid: dfeee8acfcf2df64ba2ce7b5d245d637, type: 2}
+    m_OverrideClip: {fileID: 7400000, guid: dfeee8acfcf2df64ba2ce7b5d245d637, type: 2}

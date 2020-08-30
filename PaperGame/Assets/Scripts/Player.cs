@@ -48,13 +48,11 @@ public class Player : MonoBehaviour
         InitPlayer();
         if (tutorial && tutorial.activeSelf)
         {
-            //Debug.Log("Tutorial: not falling");
             updateDistanceFallen = false;
             obstacleSpawner.gameObject.SetActive(false);
         }
         else
         {
-            //Debug.Log("No tutorial: falling");
             updateDistanceFallen = true;
         }
     }
@@ -170,16 +168,16 @@ public class Player : MonoBehaviour
         switch (other.tag)
         {
             case "Obstacle":
-                Debug.Log("Obstacle Collision");
+                //Debug.Log("Obstacle Collision");
                 InitPlayer();
                 obstacleSpawner.InitObstacles();
                 break;
             case "Collectable":
-                Debug.Log("Collectable Collision");
+                //Debug.Log("Collectable Collision");
                 other.gameObject.SetActive(false);
                 break;
             default:
-                Debug.Log("Default Collision");
+                //Debug.Log("Default Collision");
                 break;
         }
     }
@@ -193,13 +191,11 @@ public class Player : MonoBehaviour
 
     void onEnable()
     {
-        Debug.Log("ENABLE");
         controls.Gameplay.Enable();
     }
 
     void onDisable()
     {
-        Debug.Log("DISABLE");
         controls.Gameplay.Disable();
     }
 }
