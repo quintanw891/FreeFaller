@@ -12,7 +12,8 @@ public class Player : MonoBehaviour
     public float maxAddedVerticalSpeed;
     [HideInInspector]
     public float distanceFallen;
-    public float startDistanceFallen;
+    public float startDistanceFallen;   // Distance fallen at start of scene
+    private float spawnDistanceFallen;  // Distance fallen at respawn
     private bool updateDistanceFallen;
 
     // Lateral movement fields
@@ -25,10 +26,11 @@ public class Player : MonoBehaviour
     public Transform walls;
     public GameObject tutorial;
 
+    // Other
     PlayerControls controls;
     Vector2 tiltInput;
     Vector2 move;
-    Vector3 startPosition;
+    Vector3 startPosition;  // Position of Player at start of scene
     Vector3 tilt;
 
     void Awake()
@@ -40,6 +42,7 @@ public class Player : MonoBehaviour
 
         controls.Gameplay.Enable();
         startPosition = transform.position;
+        spawnDistanceFallen = startDistanceFallen;
     }
 
     // Start is called before the first frame update
@@ -62,7 +65,7 @@ public class Player : MonoBehaviour
         transform.position = startPosition;
         tilt = Vector3.zero;
         tiltAddedVerticalSpeed = 0f;
-        distanceFallen = startDistanceFallen;
+        distanceFallen = spawnDistanceFallen;
         lateralMovement = Vector3.zero;
         lateralSpeed = 0f;
     }
@@ -175,6 +178,11 @@ public class Player : MonoBehaviour
             case "Collectable":
                 //Debug.Log("Collectable Collision");
                 other.gameObject.SetActive(false);
+                break;
+            case "Checkpoint":
+                //Debug.Log("Checkpoint Collision");
+                other.gameObject.GetComponent<Obstacle>().spawn = false;
+                spawnDistanceFallen = distanceFallen;
                 break;
             default:
                 //Debug.Log("Default Collision");

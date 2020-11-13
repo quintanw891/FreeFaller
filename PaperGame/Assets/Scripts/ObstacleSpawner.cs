@@ -25,7 +25,10 @@ public class ObstacleSpawner : MonoBehaviour
             GameObject obstacleObject = obstacleTransform.gameObject;
             obstacleObject.SetActive(false);
             Obstacle obstacle = obstacleObject.GetComponent<Obstacle>();
-            obstacles.Add(obstacle);
+            if (obstacle.spawn)
+            {
+                obstacles.Add(obstacle);
+            }
         }
         obstacles.Sort(Obstacle.CompareByDepth);
 

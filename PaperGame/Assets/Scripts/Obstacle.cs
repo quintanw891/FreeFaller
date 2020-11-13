@@ -6,10 +6,13 @@ public class Obstacle : MonoBehaviour
 {
     [HideInInspector]
     public Vector3 relativePosition; //position relative to other obstacles
-    
+    [HideInInspector]
+    public bool spawn; //Should this obstacle spawn in the scene
+
     void Awake()
     {
         relativePosition = transform.position;
+        spawn = true;
     }
     
     void Update()
