@@ -12,14 +12,16 @@ public class Player : MonoBehaviour
     public float maxAddedVerticalSpeed;
     [HideInInspector]
     public float distanceFallen;
-    public float startDistanceFallen;   // Distance fallen at start of scene
+    [SerializeField]
+    private float startDistanceFallen;   // Distance fallen at start of scene
     private float spawnDistanceFallen;  // Distance fallen at respawn
     private bool updateDistanceFallen;
 
     // Lateral movement fields
     private float lateralSpeed;
     Vector3 lateralMovement;
-    public float maxLateralSpeed;
+    [SerializeField]
+    private float maxLateralSpeed;
 
     // Objects in scene
     public ObstacleSpawner obstacleSpawner;
@@ -27,6 +29,15 @@ public class Player : MonoBehaviour
     public GameObject tutorial;
 
     // Other
+    private Animator animator;
+    [SerializeField]
+    private int maxHealth;
+    private int health;
+    private bool invincible;
+    [SerializeField]
+    private float invincibleDurationSec;
+    private IEnumerator invincibleRoutine;
+    private bool invincibleRoutineRunning;
     PlayerControls controls;
     Vector2 tiltInput;
     Vector2 move;
@@ -36,13 +47,14 @@ public class Player : MonoBehaviour
     void Awake()
     {
         controls = new PlayerControls();
-
         controls.Gameplay.Tilt.performed += ctx => tiltInput = ctx.ReadValue<Vector2>();
         controls.Gameplay.Tilt.canceled += ctx => tiltInput = Vector2.zero;
-
         controls.Gameplay.Enable();
+
         startPosition = transform.position;
         spawnDistanceFallen = startDistanceFallen;
+        invincibleRoutineRunning = false;
+        animator = GetComponent<Animator>();
     }
 
     // Start is called before the first frame update
@@ -68,6 +80,13 @@ public class Player : MonoBehaviour
         distanceFallen = spawnDistanceFallen;
         lateralMovement = Vector3.zero;
         lateralSpeed = 0f;
+        health = maxHealth;
+        invincible = false;
+        animator.SetBool("invincible", false);
+        if (invincibleRoutineRunning)
+        {
+            StopCoroutine(invincibleRoutine);
+        }
     }
     
     void Update()
@@ -166,12 +185,40 @@ public class Player : MonoBehaviour
     }
     */
 
+    private IEnumerator BecomeInvincible()
+    {
+        invincibleRoutineRunning = true;
+        invincible = true;
+        animator.SetBool("invincible", true);
+        yield return new WaitForSeconds(invincibleDurationSec);
+        invincible = false;
+        animator.SetBool("invincible", false);
+        invincibleRoutineRunning = false;
+    }
+
     private void OnTriggerEnter(Collider other)
     {
         switch (other.tag)
         {
             case "Obstacle":
                 //Debug.Log("Obstacle Collision");
+                if (!invincible)
+                {
+                    health -= 1;
+                    if (health <= 0)
+                    {
+                        InitPlayer();
+                        obstacleSpawner.InitObstacles();
+                    }
+                    else
+                    {
+                        invincibleRoutine = BecomeInvincible();
+                        StartCoroutine(invincibleRoutine);
+                    }
+                }
+                break;
+            case "Death Zone":
+                //Debug.Log("Death Zone Collision");
                 InitPlayer();
                 obstacleSpawner.InitObstacles();
                 break;
@@ -186,6 +233,31 @@ public class Player : MonoBehaviour
                 break;
             default:
                 //Debug.Log("Default Collision");
+                break;
+        }
+    }
+
+    private void OnTriggerStay(Collider other)
+    {
+        switch (other.tag)
+        {
+            case "Obstacle":
+                if (!invincible)
+                {
+                    health -= 1;
+                    if (health <= 0)
+                    {
+                        InitPlayer();
+                        obstacleSpawner.InitObstacles();
+                    }
+                    else
+                    {
+                        invincibleRoutine = BecomeInvincible();
+                        StartCoroutine(invincibleRoutine);
+                    }
+                }
+                break;
+            default:
                 break;
         }
     }
@@ -205,5 +277,10 @@ public class Player : MonoBehaviour
     void onDisable()
     {
         controls.Gameplay.Disable();
+    }
+
+    public int getHealth()
+    {
+        return health;
     }
 }
