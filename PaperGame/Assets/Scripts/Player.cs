@@ -13,7 +13,7 @@ public class Player : MonoBehaviour
     [HideInInspector]
     public float distanceFallen;
     [SerializeField]
-    private float startDistanceFallen;   // Distance fallen at start of scene
+    private float startDistanceFallen = 0;   // Distance fallen at start of scene
     private float spawnDistanceFallen;  // Distance fallen at respawn
     private bool updateDistanceFallen;
 
@@ -21,23 +21,26 @@ public class Player : MonoBehaviour
     private float lateralSpeed;
     Vector3 lateralMovement;
     [SerializeField]
-    private float maxLateralSpeed;
+    private float maxLateralSpeed = 0.013f;
 
     // Objects in scene
     public ObstacleSpawner obstacleSpawner;
     public Transform walls;
     public GameObject tutorial;
+    public GameObject scraps;
 
     // Other
     private Animator animator;
     [SerializeField]
-    private int maxHealth;
+    private int maxHealth = 1;
     private int health;
     private bool invincible;
+    private bool dead;
     [SerializeField]
-    private float invincibleDurationSec;
+    private float invincibleDurationSec = 1;
     private IEnumerator invincibleRoutine;
     private bool invincibleRoutineRunning;
+    private IEnumerator ripApartRoutine;
     PlayerControls controls;
     Vector2 tiltInput;
     Vector2 move;
@@ -83,6 +86,8 @@ public class Player : MonoBehaviour
         health = maxHealth;
         invincible = false;
         animator.SetBool("invincible", false);
+        dead = false;
+        animator.SetBool("dead", false);
         if (invincibleRoutineRunning)
         {
             StopCoroutine(invincibleRoutine);
@@ -91,56 +96,64 @@ public class Player : MonoBehaviour
     
     void Update()
     {
-        if (tiltInput.magnitude == 0) // No Input
+        if (!dead)
         {
-            transform.eulerAngles = new Vector3(0, transform.eulerAngles.y, 0);
-        }
-        else if (tiltInput.x > 0 && tiltInput.y >= 0) // Q I
-        {
-            transform.eulerAngles = new Vector3(tiltInput.magnitude * 90, -270 + Mathf.Atan(tiltInput.y / tiltInput.x) * Mathf.Rad2Deg * -1, 0);
-        }else if (tiltInput.x <= 0 && tiltInput.y > 0) // Q II
-        {
-            transform.eulerAngles = new Vector3(tiltInput.magnitude * 90, Mathf.Atan(-tiltInput.x / tiltInput.y) * Mathf.Rad2Deg * -1, 0);
-        }
-        else if (tiltInput.x < 0 && tiltInput.y <= 0) // Q III
-        {
-            transform.eulerAngles = new Vector3(tiltInput.magnitude * 90, -90 + Mathf.Atan(-tiltInput.y / -tiltInput.x) * Mathf.Rad2Deg * -1, 0);
-        }
-        else // Q IV
-        {
-            transform.eulerAngles = new Vector3(tiltInput.magnitude * 90, -180 + Mathf.Atan(tiltInput.x / -tiltInput.y) * Mathf.Rad2Deg * -1, 0);
-        }
-        //TODO use tiltInput instead of tilt from this point on
-        tilt = new Vector3(tiltInput.y * 90, 0, tiltInput.x * 90 * -1);
-        tiltAddedVerticalSpeed = tilt.magnitude * maxAddedVerticalSpeed / 90;
-        if (updateDistanceFallen)
-            distanceFallen += (baseFallSpeed + tiltAddedVerticalSpeed) * Time.deltaTime;
-        lateralSpeed = Mathf.Sin(tilt.magnitude * Mathf.PI / 90) * maxLateralSpeed;
-        Vector3 tiltDirection = (new Vector3(tilt.z * -1, 0, tilt.x) / 90).normalized;
-        lateralMovement = tiltDirection * lateralSpeed;
-        List<Transform> blockingWalls = GetBlockingWalls(lateralMovement);
-        if (blockingWalls.Count == 0)
-            transform.Translate(lateralMovement, Space.World);
-        else if (blockingWalls.Count == 1)
-        {
-            // This is the wall normal rotated into the world up plane
-            Vector3 adjustedWallNormal = Vector3.Normalize(Vector3.ProjectOnPlane(blockingWalls[0].up * 100, Vector3.up));
-            float normalToMovement = Vector3.SignedAngle(adjustedWallNormal, lateralMovement, Vector3.up);
-            float lateralSpeed = Mathf.Abs(lateralMovement.magnitude * Mathf.Cos(Mathf.Abs(normalToMovement) - 90));
-            lateralMovement = adjustedWallNormal * lateralSpeed;
-            //Debug.Log("Normal: " + lateralMovement);
-            //Debug.Log("Lat Speed: " + lateralSpeed);
-            if (normalToMovement > 0) // slide to the wall's right
-                lateralMovement = Quaternion.Euler(0, 90, 0) * lateralMovement;
-            else // slide to the wall's left
-                lateralMovement = Quaternion.Euler(0, -90, 0) * lateralMovement;
-            transform.Translate(lateralMovement, Space.World);
+            // Transform the magnitude of the player's directional input into one that favors 50% intensity
+            float favorMiddleMagnitude = (Mathf.Pow(2 * (tiltInput.magnitude) - 1, 3) + 1) / 2;
 
-            //Debug.Log("Angle" + normalToMovement);
-        }
+            // Update the orientation of the player
+            if (favorMiddleMagnitude == 0) // No Input
+            {
+                transform.eulerAngles = new Vector3(0, transform.eulerAngles.y, 0);
+            }
+            else if (tiltInput.x > 0 && tiltInput.y >= 0) // Q I
+            {
+                transform.eulerAngles = new Vector3(favorMiddleMagnitude * 90, -270 + Mathf.Atan(tiltInput.y / tiltInput.x) * Mathf.Rad2Deg * -1, 0);
+            }
+            else if (tiltInput.x <= 0 && tiltInput.y > 0) // Q II
+            {
+                transform.eulerAngles = new Vector3(favorMiddleMagnitude * 90, Mathf.Atan(-tiltInput.x / tiltInput.y) * Mathf.Rad2Deg * -1, 0);
+            }
+            else if (tiltInput.x < 0 && tiltInput.y <= 0) // Q III
+            {
+                transform.eulerAngles = new Vector3(favorMiddleMagnitude * 90, -90 + Mathf.Atan(-tiltInput.y / -tiltInput.x) * Mathf.Rad2Deg * -1, 0);
+            }
+            else // Q IV
+            {
+                transform.eulerAngles = new Vector3(tiltInput.magnitude * 90, -180 + Mathf.Atan(tiltInput.x / -tiltInput.y) * Mathf.Rad2Deg * -1, 0);
+            }
 
-        //if(canMove(lateralMovement, walls))
-        //    transform.Translate(lateralMovement, Space.World);
+            // Update the vertical and lateral speed of the player
+            tiltAddedVerticalSpeed = favorMiddleMagnitude * maxAddedVerticalSpeed;
+            if (updateDistanceFallen)
+                distanceFallen += (baseFallSpeed + tiltAddedVerticalSpeed) * Time.deltaTime;
+            lateralSpeed = Mathf.Sin(favorMiddleMagnitude * Mathf.PI) * maxLateralSpeed;
+            Vector3 tiltDirection = (new Vector3(tiltInput.x, 0, tiltInput.y)).normalized;
+            lateralMovement = tiltDirection * lateralSpeed;
+            List<Transform> blockingWalls = GetBlockingWalls(lateralMovement);
+            if (blockingWalls.Count == 0)
+                transform.Translate(lateralMovement, Space.World);
+            else if (blockingWalls.Count == 1)
+            {
+                // This is the wall normal rotated into the world up plane
+                Vector3 adjustedWallNormal = Vector3.Normalize(Vector3.ProjectOnPlane(blockingWalls[0].up * 100, Vector3.up));
+                float normalToMovement = Vector3.SignedAngle(adjustedWallNormal, lateralMovement, Vector3.up);
+                float lateralSpeed = Mathf.Abs(lateralMovement.magnitude * Mathf.Cos(Mathf.Abs(normalToMovement) - 90));
+                lateralMovement = adjustedWallNormal * lateralSpeed;
+                //Debug.Log("Normal: " + lateralMovement);
+                //Debug.Log("Lat Speed: " + lateralSpeed);
+                if (normalToMovement > 0) // slide to the wall's right
+                    lateralMovement = Quaternion.Euler(0, 90, 0) * lateralMovement;
+                else // slide to the wall's left
+                    lateralMovement = Quaternion.Euler(0, -90, 0) * lateralMovement;
+                transform.Translate(lateralMovement, Space.World);
+
+                //Debug.Log("Angle" + normalToMovement);
+            }
+
+            //if(canMove(lateralMovement, walls))
+            //    transform.Translate(lateralMovement, Space.World);
+        }
     }
 
     /*
@@ -195,6 +208,39 @@ public class Player : MonoBehaviour
         animator.SetBool("invincible", false);
         invincibleRoutineRunning = false;
     }
+    
+    public IEnumerator RipApart()
+    {
+        scraps.transform.position = transform.position;
+        ParticleSystem pSystem = scraps.GetComponent<ParticleSystem>();
+        pSystem.Play();
+        yield return new WaitForSeconds(pSystem.main.duration);
+        InitPlayer();
+        obstacleSpawner.InitObstacles();
+        gameObject.GetComponent<BoxCollider>().enabled = true;
+        updateDistanceFallen = true;
+        foreach (Transform wall in walls)
+        {
+            wall.gameObject.GetComponent<Wall>().SetScroll(true);
+        }
+        obstacleSpawner.SetRise(true);
+    }
+
+    private void die()
+    {
+        dead = true;
+        animator.SetBool("dead", true);
+        tiltAddedVerticalSpeed = 0f;
+        gameObject.GetComponent<BoxCollider>().enabled = false;
+        updateDistanceFallen = false;
+        foreach (Transform wall in walls)
+        {
+            wall.gameObject.GetComponent<Wall>().SetScroll(false);
+        }
+        obstacleSpawner.SetRise(false);
+        ripApartRoutine = RipApart();
+        StartCoroutine(ripApartRoutine);
+    }
 
     private void OnTriggerEnter(Collider other)
     {
@@ -207,8 +253,7 @@ public class Player : MonoBehaviour
                     health -= 1;
                     if (health <= 0)
                     {
-                        InitPlayer();
-                        obstacleSpawner.InitObstacles();
+                        die();
                     }
                     else
                     {
@@ -219,8 +264,7 @@ public class Player : MonoBehaviour
                 break;
             case "Death Zone":
                 //Debug.Log("Death Zone Collision");
-                InitPlayer();
-                obstacleSpawner.InitObstacles();
+                die();
                 break;
             case "Collectable":
                 //Debug.Log("Collectable Collision");
@@ -247,8 +291,7 @@ public class Player : MonoBehaviour
                     health -= 1;
                     if (health <= 0)
                     {
-                        InitPlayer();
-                        obstacleSpawner.InitObstacles();
+                        die();
                     }
                     else
                     {

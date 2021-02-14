@@ -10,9 +10,11 @@ public class ObstacleSpawner : MonoBehaviour
     public float obstacleSpawnDepth;
     private Queue<Obstacle> obstaclesToSpawn;
     private Queue<Obstacle> spawnedObstacles;
+    private bool rise;
 
     void Start()
     {
+        rise = true;
         InitObstacles();
     }
 
@@ -56,6 +58,11 @@ public class ObstacleSpawner : MonoBehaviour
         }
     }
 
+    public void SetRise(bool value)
+    {
+        rise = value;
+    }
+
     void Update()
     {
         // Deactivate highest obstacle when it reaches despawn point
@@ -76,10 +83,13 @@ public class ObstacleSpawner : MonoBehaviour
             obstacleToSpawn.gameObject.SetActive(true);
         }
 
-        float riseSpeed = player.GetComponent<Player>().baseFallSpeed + player.GetComponent<Player>().tiltAddedVerticalSpeed;
-        foreach (Obstacle obstacle in spawnedObstacles)
+        if (rise)
         {
-            obstacle.gameObject.transform.position = obstacle.gameObject.transform.position + (Vector3.up * riseSpeed * Time.deltaTime);
+            float riseSpeed = player.GetComponent<Player>().baseFallSpeed + player.GetComponent<Player>().tiltAddedVerticalSpeed;
+            foreach (Obstacle obstacle in spawnedObstacles)
+            {
+                obstacle.gameObject.transform.position = obstacle.gameObject.transform.position + (Vector3.up * riseSpeed * Time.deltaTime);
+            }
         }
     }
 }

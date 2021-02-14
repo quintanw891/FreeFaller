@@ -46,6 +46,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   relativePosition: {x: 0, y: 0, z: 0}
+  spawn: 0
 --- !u!1 &1265813437090562245
 GameObject:
   m_ObjectHideFlags: 0
@@ -104,7 +105,7 @@ MeshRenderer:
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
-  - {fileID: 2100000, guid: d6496a854a2e59d46a03dcd40867dc05, type: 2}
+  - {fileID: 2100000, guid: 3cdc1958adb8d5447acfd22baf22c8ad, type: 2}
   m_StaticBatchInfo:
     firstSubMesh: 0
     subMeshCount: 0
