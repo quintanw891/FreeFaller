@@ -23149,6 +23149,11 @@ PrefabInstance:
       propertyPath: maxHealth
       value: 2
       objectReference: {fileID: 0}
+    - target: {fileID: 1731404874723741853, guid: 0e130f62404a1d34790deab1d3023ea1,
+        type: 3}
+      propertyPath: movementMode
+      value: 1
+      objectReference: {fileID: 0}
     - target: {fileID: 4564577741540446784, guid: 0e130f62404a1d34790deab1d3023ea1,
         type: 3}
       propertyPath: m_Materials.Array.data[0]

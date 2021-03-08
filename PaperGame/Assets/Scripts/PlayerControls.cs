@@ -48,6 +48,14 @@ public class PlayerControls : IInputActionCollection
                     ""expectedControlType"": """",
                     ""processors"": """",
                     ""interactions"": """"
+                },
+                {
+                    ""name"": ""Dive"",
+                    ""type"": ""Button"",
+                    ""id"": ""9f8db90f-c1b0-4cca-af1e-e4a7f03f39ce"",
+                    ""expectedControlType"": """",
+                    ""processors"": """",
+                    ""interactions"": """"
                 }
             ],
             ""bindings"": [
@@ -94,6 +102,17 @@ public class PlayerControls : IInputActionCollection
                     ""action"": ""Tilt"",
                     ""isComposite"": false,
                     ""isPartOfComposite"": false
+                },
+                {
+                    ""name"": """",
+                    ""id"": ""ea77d43b-80e0-4fba-b894-81fecd407d7b"",
+                    ""path"": ""<Gamepad>/buttonSouth"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": """",
+                    ""action"": ""Dive"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": false
                 }
             ]
         }
@@ -106,6 +125,7 @@ public class PlayerControls : IInputActionCollection
         m_Gameplay_Move = m_Gameplay.FindAction("Move", throwIfNotFound: true);
         m_Gameplay_Rotate = m_Gameplay.FindAction("Rotate", throwIfNotFound: true);
         m_Gameplay_Tilt = m_Gameplay.FindAction("Tilt", throwIfNotFound: true);
+        m_Gameplay_Dive = m_Gameplay.FindAction("Dive", throwIfNotFound: true);
     }
 
     ~PlayerControls()
@@ -159,6 +179,7 @@ public class PlayerControls : IInputActionCollection
     private readonly InputAction m_Gameplay_Move;
     private readonly InputAction m_Gameplay_Rotate;
     private readonly InputAction m_Gameplay_Tilt;
+    private readonly InputAction m_Gameplay_Dive;
     public struct GameplayActions
     {
         private PlayerControls m_Wrapper;
@@ -167,6 +188,7 @@ public class PlayerControls : IInputActionCollection
         public InputAction @Move => m_Wrapper.m_Gameplay_Move;
         public InputAction @Rotate => m_Wrapper.m_Gameplay_Rotate;
         public InputAction @Tilt => m_Wrapper.m_Gameplay_Tilt;
+        public InputAction @Dive => m_Wrapper.m_Gameplay_Dive;
         public InputActionMap Get() { return m_Wrapper.m_Gameplay; }
         public void Enable() { Get().Enable(); }
         public void Disable() { Get().Disable(); }
@@ -188,6 +210,9 @@ public class PlayerControls : IInputActionCollection
                 Tilt.started -= m_Wrapper.m_GameplayActionsCallbackInterface.OnTilt;
                 Tilt.performed -= m_Wrapper.m_GameplayActionsCallbackInterface.OnTilt;
                 Tilt.canceled -= m_Wrapper.m_GameplayActionsCallbackInterface.OnTilt;
+                Dive.started -= m_Wrapper.m_GameplayActionsCallbackInterface.OnDive;
+                Dive.performed -= m_Wrapper.m_GameplayActionsCallbackInterface.OnDive;
+                Dive.canceled -= m_Wrapper.m_GameplayActionsCallbackInterface.OnDive;
             }
             m_Wrapper.m_GameplayActionsCallbackInterface = instance;
             if (instance != null)
@@ -204,6 +229,9 @@ public class PlayerControls : IInputActionCollection
                 Tilt.started += instance.OnTilt;
                 Tilt.performed += instance.OnTilt;
                 Tilt.canceled += instance.OnTilt;
+                Dive.started += instance.OnDive;
+                Dive.performed += instance.OnDive;
+                Dive.canceled += instance.OnDive;
             }
         }
     }
@@ -214,5 +242,6 @@ public class PlayerControls : IInputActionCollection
         void OnMove(InputAction.CallbackContext context);
         void OnRotate(InputAction.CallbackContext context);
         void OnTilt(InputAction.CallbackContext context);
+        void OnDive(InputAction.CallbackContext context);
     }
 }

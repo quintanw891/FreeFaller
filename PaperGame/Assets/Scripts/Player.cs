@@ -3,9 +3,14 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.InputSystem;
 
+enum MovementMode {Physics, Simple};
+
 public class Player : MonoBehaviour
 {
-    // Vertical movement fields
+    // Movement fields
+    [SerializeField]
+    private MovementMode movementMode = MovementMode.Simple;
+    // Vertical
     public float baseFallSpeed;
     [HideInInspector]
     public float tiltAddedVerticalSpeed;
@@ -16,8 +21,7 @@ public class Player : MonoBehaviour
     private float startDistanceFallen = 0;   // Distance fallen at start of scene
     private float spawnDistanceFallen;  // Distance fallen at respawn
     private bool updateDistanceFallen;
-
-    // Lateral movement fields
+    // Lateral
     private float lateralSpeed;
     Vector3 lateralMovement;
     [SerializeField]
@@ -43,6 +47,7 @@ public class Player : MonoBehaviour
     private IEnumerator ripApartRoutine;
     PlayerControls controls;
     Vector2 tiltInput;
+    private bool diving = false;
     Vector2 move;
     Vector3 startPosition;  // Position of Player at start of scene
     Vector3 tilt;
@@ -52,6 +57,11 @@ public class Player : MonoBehaviour
         controls = new PlayerControls();
         controls.Gameplay.Tilt.performed += ctx => tiltInput = ctx.ReadValue<Vector2>();
         controls.Gameplay.Tilt.canceled += ctx => tiltInput = Vector2.zero;
+        if(movementMode == MovementMode.Simple)
+        {
+            controls.Gameplay.Dive.performed += ctx => diving = true;
+            controls.Gameplay.Dive.canceled += ctx => diving = false;
+        }
         controls.Gameplay.Enable();
 
         startPosition = transform.position;
@@ -98,36 +108,57 @@ public class Player : MonoBehaviour
     {
         if (!dead)
         {
-            // Transform the magnitude of the player's directional input into one that favors 50% intensity
-            float favorMiddleMagnitude = (Mathf.Pow(2 * (tiltInput.magnitude) - 1, 3) + 1) / 2;
+            float tiltMagnitude;
+            float maxTilt;
+            switch (movementMode)
+            {
+                case MovementMode.Physics:
+                    // Transform magnitude of player directional input to favor 50% intensity
+                    tiltMagnitude = (Mathf.Pow(2 * (tiltInput.magnitude) - 1, 3) + 1) / 2;
+                    maxTilt = 1f;
+                    tiltAddedVerticalSpeed = tiltMagnitude * maxAddedVerticalSpeed;
+                    lateralSpeed = Mathf.Sin(tiltMagnitude * Mathf.PI) * maxLateralSpeed;
+                    break;
+                case MovementMode.Simple:
+                default:
+                    tiltMagnitude = tiltInput.magnitude;
+                    maxTilt = 0.5f;
+                    tiltAddedVerticalSpeed = 0f;
+                    lateralSpeed = tiltMagnitude * maxLateralSpeed;
+                    if (diving)
+                    {
+                        tiltMagnitude = 1f;
+                        maxTilt = 0.8f;
+                        tiltAddedVerticalSpeed = maxAddedVerticalSpeed;
+                    }
+                    break;
+            }
 
             // Update the orientation of the player
-            if (favorMiddleMagnitude == 0) // No Input
+            if (tiltInput.magnitude == 0) // No Input
             {
-                transform.eulerAngles = new Vector3(0, transform.eulerAngles.y, 0);
+                transform.eulerAngles = new Vector3(tiltMagnitude * 90, transform.eulerAngles.y, 0);
             }
             else if (tiltInput.x > 0 && tiltInput.y >= 0) // Q I
             {
-                transform.eulerAngles = new Vector3(favorMiddleMagnitude * 90, -270 + Mathf.Atan(tiltInput.y / tiltInput.x) * Mathf.Rad2Deg * -1, 0);
+                transform.eulerAngles = new Vector3(tiltMagnitude * 90 * maxTilt, -270 + Mathf.Atan(tiltInput.y / tiltInput.x) * Mathf.Rad2Deg * -1, 0);
             }
             else if (tiltInput.x <= 0 && tiltInput.y > 0) // Q II
             {
-                transform.eulerAngles = new Vector3(favorMiddleMagnitude * 90, Mathf.Atan(-tiltInput.x / tiltInput.y) * Mathf.Rad2Deg * -1, 0);
+                transform.eulerAngles = new Vector3(tiltMagnitude * 90 * maxTilt, Mathf.Atan(-tiltInput.x / tiltInput.y) * Mathf.Rad2Deg * -1, 0);
             }
             else if (tiltInput.x < 0 && tiltInput.y <= 0) // Q III
             {
-                transform.eulerAngles = new Vector3(favorMiddleMagnitude * 90, -90 + Mathf.Atan(-tiltInput.y / -tiltInput.x) * Mathf.Rad2Deg * -1, 0);
+                transform.eulerAngles = new Vector3(tiltMagnitude * 90 * maxTilt, -90 + Mathf.Atan(-tiltInput.y / -tiltInput.x) * Mathf.Rad2Deg * -1, 0);
             }
             else // Q IV
             {
-                transform.eulerAngles = new Vector3(tiltInput.magnitude * 90, -180 + Mathf.Atan(tiltInput.x / -tiltInput.y) * Mathf.Rad2Deg * -1, 0);
+                transform.eulerAngles = new Vector3(tiltMagnitude * 90 * maxTilt, -180 + Mathf.Atan(tiltInput.x / -tiltInput.y) * Mathf.Rad2Deg * -1, 0);
             }
 
             // Update the vertical and lateral speed of the player
-            tiltAddedVerticalSpeed = favorMiddleMagnitude * maxAddedVerticalSpeed;
             if (updateDistanceFallen)
                 distanceFallen += (baseFallSpeed + tiltAddedVerticalSpeed) * Time.deltaTime;
-            lateralSpeed = Mathf.Sin(favorMiddleMagnitude * Mathf.PI) * maxLateralSpeed;
             Vector3 tiltDirection = (new Vector3(tiltInput.x, 0, tiltInput.y)).normalized;
             lateralMovement = tiltDirection * lateralSpeed;
             List<Transform> blockingWalls = GetBlockingWalls(lateralMovement);
