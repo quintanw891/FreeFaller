@@ -278,7 +278,7 @@ public class Player : MonoBehaviour
         switch (other.tag)
         {
             case "Obstacle":
-                //Debug.Log("Obstacle Collision");
+                //Debug.Log("Enter Obstacle " + other.gameObject.name);
                 if (!invincible)
                 {
                     health -= 1;
@@ -317,6 +317,7 @@ public class Player : MonoBehaviour
         switch (other.tag)
         {
             case "Obstacle":
+                //Debug.Log("Stay Obstacle " + other.gameObject.name);
                 if (!invincible)
                 {
                     health -= 1;
