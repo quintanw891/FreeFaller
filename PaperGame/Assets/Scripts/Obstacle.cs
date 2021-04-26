@@ -14,17 +14,18 @@ public class Obstacle : MonoBehaviour
         relativePosition = transform.position;
         spawn = true;
     }
-    
-    void Update()
-    {
-
-    }
 
     // Returns -1 if current obstacle exists above the input obstacle,
     // 0 if both obstacles exist at the same height, and 1 otherwise
     public static int CompareByDepth(Obstacle o1, Obstacle o2)
     {
         return o1.relativePosition.y.CompareTo(o2.relativePosition.y) * -1;
+    }
+
+    public void CreateProjector(GameObject projectorPrefab, Player player)
+    {
+        ObstacleProjector projector = Instantiate(projectorPrefab, transform).GetComponent<ObstacleProjector>();
+        projector.SetPlayer(player);
     }
 
     public string PrintMe()

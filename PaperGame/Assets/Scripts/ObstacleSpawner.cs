@@ -5,11 +5,17 @@ using UnityEngine;
 public class ObstacleSpawner : MonoBehaviour
 {
     public Player player;
-    public float obstacleDespawnHeight;
     public float firstObstacleDepth;
+    //TODO add constraints to the floats below.
+    //obstacleSpawnDepth < obstacleProjectDepth < obstacleDespawnHeight
     public float obstacleSpawnDepth;
+    public float obstacleProjectDepth;
+    public float obstacleDespawnHeight;
     private Queue<Obstacle> obstaclesToSpawn;
-    private Queue<Obstacle> spawnedObstacles;
+    private Queue<Obstacle> obstaclesToProject;
+    private Queue<Obstacle> obstaclesToDespawn;
+    [SerializeField]
+    private GameObject obstacleProjectorPrefab = null;
     private bool rise;
 
     void Start()
@@ -34,27 +40,33 @@ public class ObstacleSpawner : MonoBehaviour
         }
         obstacles.Sort(Obstacle.CompareByDepth);
 
-        // Queue spawned and unspawned obstacles
-        spawnedObstacles = new Queue<Obstacle>();
+        // Queue obstacles that are yet to spawn, project, and despawn
         obstaclesToSpawn = new Queue<Obstacle>();
+        obstaclesToProject = new Queue<Obstacle>();
+        obstaclesToDespawn = new Queue<Obstacle>();
 
         foreach (Obstacle obstacle in obstacles)
         {
             float obstacleDepth = obstacle.relativePosition.y + firstObstacleDepth;
-            if (obstacleDepth >= obstacleSpawnDepth - player.distanceFallen &&
-                obstacleDepth < obstacleDespawnHeight - player.distanceFallen)
-                spawnedObstacles.Enqueue(obstacle);
-            else if(obstacleDepth < obstacleSpawnDepth - player.distanceFallen)
+            if(obstacleDepth < obstacleSpawnDepth - player.distanceFallen)
+            {
                 obstaclesToSpawn.Enqueue(obstacle);
-        }
-
-        // Activate spawned obstacles
-        foreach (Obstacle obstacle in spawnedObstacles)
-        {
-            obstacle.transform.position = new Vector3(  obstacle.relativePosition.x,
-                                                        (firstObstacleDepth) + obstacle.relativePosition.y + player.distanceFallen,
-                                                        obstacle.relativePosition.z);
-            obstacle.gameObject.SetActive(true);
+            } else if (obstacleDepth < obstacleProjectDepth -  player.distanceFallen)
+            {
+                obstaclesToProject.Enqueue(obstacle);
+                obstacle.transform.position = new Vector3(obstacle.relativePosition.x,
+                            (firstObstacleDepth) + obstacle.relativePosition.y + player.distanceFallen,
+                            obstacle.relativePosition.z);
+                obstacle.gameObject.SetActive(true);
+            } else if (obstacleDepth < obstacleDespawnHeight - player.distanceFallen)
+            {
+                obstaclesToDespawn.Enqueue(obstacle);
+                obstacle.CreateProjector(obstacleProjectorPrefab, player);
+                obstacle.transform.position = new Vector3(obstacle.relativePosition.x,
+                                            (firstObstacleDepth) + obstacle.relativePosition.y + player.distanceFallen,
+                                            obstacle.relativePosition.z);
+                obstacle.gameObject.SetActive(true);
+            }
         }
     }
 
@@ -65,12 +77,21 @@ public class ObstacleSpawner : MonoBehaviour
 
     void Update()
     {
-        // Deactivate highest obstacle when it reaches despawn point
-        if (spawnedObstacles.Count > 0 &&
-            player.distanceFallen > -1 * (firstObstacleDepth + spawnedObstacles.Peek().relativePosition.y - obstacleDespawnHeight))
-            spawnedObstacles.Dequeue().gameObject.SetActive(false);
+        // Despawn next obstacle when it reaches despawn point
+        if (obstaclesToDespawn.Count > 0 &&
+            player.distanceFallen > -1 * (firstObstacleDepth + obstaclesToDespawn.Peek().relativePosition.y - obstacleDespawnHeight))
+            obstaclesToDespawn.Dequeue().gameObject.SetActive(false);
 
-        // Activate next obstacle when within spawn range of player's depth
+        // Activate projector for next obstacle when it reaches project point
+        if (obstaclesToProject.Count > 0 &&
+            player.distanceFallen > -1 * (firstObstacleDepth + obstaclesToProject.Peek().relativePosition.y - obstacleProjectDepth))
+        {
+            Obstacle obstacleToProject = obstaclesToProject.Dequeue();
+            obstacleToProject.CreateProjector(obstacleProjectorPrefab, player);
+            obstaclesToDespawn.Enqueue(obstacleToProject);
+        }
+
+        // Spawn next obstacle when it reaches spawn point
         float spawnOffset;
         if (obstaclesToSpawn.Count > 0 &&
             (spawnOffset = (player.distanceFallen - obstacleSpawnDepth) -
@@ -79,14 +100,19 @@ public class ObstacleSpawner : MonoBehaviour
             Obstacle obstacleToSpawn = obstaclesToSpawn.Dequeue();
             obstacleToSpawn.transform.position = new Vector3(obstacleToSpawn.relativePosition.x, obstacleSpawnDepth + spawnOffset,
                                                       obstacleToSpawn.relativePosition.z);
-            spawnedObstacles.Enqueue(obstacleToSpawn);
             obstacleToSpawn.gameObject.SetActive(true);
+            obstaclesToProject.Enqueue(obstacleToSpawn);
         }
 
+        // Update position of spawned obstacles
         if (rise)
         {
             float riseSpeed = player.GetComponent<Player>().baseFallSpeed + player.GetComponent<Player>().tiltAddedVerticalSpeed;
-            foreach (Obstacle obstacle in spawnedObstacles)
+            foreach (Obstacle obstacle in obstaclesToDespawn)
+            {
+                obstacle.gameObject.transform.position = obstacle.gameObject.transform.position + (Vector3.up * riseSpeed * Time.deltaTime);
+            }
+            foreach (Obstacle obstacle in obstaclesToProject)
             {
                 obstacle.gameObject.transform.position = obstacle.gameObject.transform.position + (Vector3.up * riseSpeed * Time.deltaTime);
             }
