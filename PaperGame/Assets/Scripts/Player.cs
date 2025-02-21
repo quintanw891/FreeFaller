@@ -1,5 +1,6 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
+using System.Reflection;
 using UnityEngine;
 using UnityEngine.InputSystem;
 
@@ -7,6 +8,8 @@ enum MovementMode {Physics, Simple};
 
 public class Player : MonoBehaviour
 {
+    // Player model
+    public GameObject model;
     // Movement fields
     [SerializeField]
     private MovementMode movementMode = MovementMode.Simple;
@@ -67,7 +70,14 @@ public class Player : MonoBehaviour
         startPosition = transform.position;
         spawnDistanceFallen = startDistanceFallen;
         invincibleRoutineRunning = false;
-        animator = GetComponent<Animator>();
+
+        // Set the player model to be child object with copied animator component
+        model.transform.parent = transform;
+        model.transform.localPosition = Vector3.zero;
+        model.transform.localRotation = Quaternion.identity;
+        animator = (Animator)model.AddComponent(typeof(Animator));
+        animator.runtimeAnimatorController = GetComponent<Animator>().runtimeAnimatorController;
+        scraps.GetComponent<ParticleSystem>().GetComponent<ParticleSystemRenderer>().material = model.GetComponent<Renderer>().material;
     }
 
     // Start is called before the first frame update
@@ -275,10 +285,11 @@ public class Player : MonoBehaviour
 
     private void OnTriggerEnter(Collider other)
     {
+        // Debug.Log("OnTriggerEnter");
         switch (other.tag)
         {
             case "Obstacle":
-                //Debug.Log("Enter Obstacle " + other.gameObject.name);
+                // Debug.Log("Enter Obstacle " + other.gameObject.name);
                 if (!invincible)
                 {
                     health -= 1;
@@ -294,20 +305,20 @@ public class Player : MonoBehaviour
                 }
                 break;
             case "Death Zone":
-                //Debug.Log("Death Zone Collision");
+                // Debug.Log("Death Zone Collision");
                 die();
                 break;
             case "Collectable":
-                //Debug.Log("Collectable Collision");
+                // Debug.Log("Collectable Collision");
                 other.gameObject.SetActive(false);
                 break;
             case "Checkpoint":
-                //Debug.Log("Checkpoint Collision");
+                // Debug.Log("Checkpoint Collision");
                 other.gameObject.GetComponent<Obstacle>().spawn = false;
                 spawnDistanceFallen = distanceFallen;
                 break;
             default:
-                //Debug.Log("Default Collision");
+                // Debug.Log("Default Collision");
                 break;
         }
     }

@@ -58,10 +58,11 @@ MeshRenderer:
   m_MotionVectors: 1
   m_LightProbeUsage: 1
   m_ReflectionProbeUsage: 1
+  m_RayTracingMode: 2
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
-  - {fileID: 10303, guid: 0000000000000000f000000000000000, type: 0}
+  - {fileID: 2100000, guid: d6c048b6cb10ae741b40e7e076c6abc8, type: 2}
   m_StaticBatchInfo:
     firstSubMesh: 0
     subMeshCount: 0
@@ -107,6 +108,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 7a1560cced001854fbdfacf74696db19, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  movementMode: 1
   baseFallSpeed: 2
   tiltAddedVerticalSpeed: 0
   maxAddedVerticalSpeed: 5
@@ -116,7 +118,9 @@ MonoBehaviour:
   obstacleSpawner: {fileID: 0}
   walls: {fileID: 0}
   tutorial: {fileID: 0}
-  maxHealth: 1
+  scraps: {fileID: 0}
+  test: {fileID: 0}
+  maxHealth: 3
   invincibleDurationSec: 1
 --- !u!54 &3607998035913055510
 Rigidbody:

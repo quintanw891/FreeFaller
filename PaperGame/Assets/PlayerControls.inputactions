@@ -11,7 +11,8 @@
                     "id": "548b0442-77e0-4112-a3ec-bb4abbcca85f",
                     "expectedControlType": "",
                     "processors": "",
-                    "interactions": ""
+                    "interactions": "",
+                    "initialStateCheck": false
                 },
                 {
                     "name": "Move",
@@ -19,7 +20,8 @@
                     "id": "8397577d-28ef-4208-b2b9-4cc4e5ff0745",
                     "expectedControlType": "",
                     "processors": "",
-                    "interactions": ""
+                    "interactions": "",
+                    "initialStateCheck": false
                 },
                 {
                     "name": "Rotate",
@@ -27,15 +29,17 @@
                     "id": "c6744c72-b38c-4475-bc05-b935eb2b7dc5",
                     "expectedControlType": "",
                     "processors": "",
-                    "interactions": ""
+                    "interactions": "",
+                    "initialStateCheck": false
                 },
                 {
                     "name": "Tilt",
-                    "type": "Button",
+                    "type": "Value",
                     "id": "f1e6579f-f897-4554-a64e-398525b3d1c9",
-                    "expectedControlType": "",
+                    "expectedControlType": "Analog",
                     "processors": "",
-                    "interactions": ""
+                    "interactions": "",
+                    "initialStateCheck": true
                 },
                 {
                     "name": "Dive",
@@ -43,7 +47,8 @@
                     "id": "9f8db90f-c1b0-4cca-af1e-e4a7f03f39ce",
                     "expectedControlType": "",
                     "processors": "",
-                    "interactions": ""
+                    "interactions": "",
+                    "initialStateCheck": false
                 }
             ],
             "bindings": [
@@ -105,5 +110,17 @@
             ]
         }
     ],
-    "controlSchemes": []
+    "controlSchemes": [
+        {
+            "name": "test xbox control scheme",
+            "bindingGroup": "test xbox control scheme",
+            "devices": [
+                {
+                    "devicePath": "<XInputController>",
+                    "isOptional": false,
+                    "isOR": false
+                }
+            ]
+        }
+    ]
 }
