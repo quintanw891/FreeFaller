@@ -177,7 +177,7 @@ public class Player : MonoBehaviour
             else if (blockingWalls.Count == 1)
             {
                 // This is the wall normal rotated into the world up plane
-                Vector3 adjustedWallNormal = Vector3.Normalize(Vector3.ProjectOnPlane(blockingWalls[0].up * 100, Vector3.up));
+                Vector3 adjustedWallNormal = Vector3.Normalize(Vector3.ProjectOnPlane(blockingWalls[0].forward * 100, Vector3.up));
                 float normalToMovement = Vector3.SignedAngle(adjustedWallNormal, lateralMovement, Vector3.up);
                 float lateralSpeed = Mathf.Abs(lateralMovement.magnitude * Mathf.Cos(Mathf.Abs(normalToMovement) - 90));
                 lateralMovement = adjustedWallNormal * lateralSpeed;
@@ -197,7 +197,7 @@ public class Player : MonoBehaviour
         }
     }
 
-    /*
+    /*blockingWalls
      * Return the list of walls that block the given movement.
      */
     List<Transform> GetBlockingWalls(Vector3 movement)
@@ -207,7 +207,7 @@ public class Player : MonoBehaviour
         {
             //Offset each wall by the player's diagonal radius to ensure
             //no part of the player clips through walls.
-            Plane plane = new Plane(wall.gameObject.transform.up,
+            Plane plane = new Plane(wall.gameObject.transform.forward,
                                     wall.gameObject.transform.position);
             float bufferMultiple = 1.1f; // Add additional buffer space to avoid clipping
             plane = Plane.Translate(plane, plane.normal * (transform.lossyScale.x * Mathf.Sqrt(0.5f)) * -1 * bufferMultiple);

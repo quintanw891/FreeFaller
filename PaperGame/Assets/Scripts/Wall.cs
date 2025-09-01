@@ -29,8 +29,8 @@ public class Wall : MonoBehaviour
         if (scroll)
         {
             float scrollSpeed = player.GetComponent<Player>().baseFallSpeed + player.GetComponent<Player>().tiltAddedVerticalSpeed;
-            rend.material.mainTextureOffset = rend.material.mainTextureOffset + (Vector2.up * scrollSpeed * Time.deltaTime);
+            //rend.material.mainTextureOffset = rend.material.mainTextureOffset + (Vector2.up * scrollSpeed * Time.deltaTime);
+            //transform.Translate(Vector3.up * scrollSpeed * Time.deltaTime, Space.World);
         }
-
     }
 }
