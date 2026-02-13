@@ -16,6 +16,8 @@ public class ObstacleSpawner : MonoBehaviour
     private Queue<Obstacle> obstaclesToDespawn;
     [SerializeField]
     private GameObject obstacleProjectorPrefab = null;
+    [SerializeField]
+    private GameObject checkpointProjectorPrefab = null;
     private bool rise;
 
     void Start()
@@ -48,20 +50,26 @@ public class ObstacleSpawner : MonoBehaviour
         foreach (Obstacle obstacle in obstacles)
         {
             float obstacleDepth = obstacle.relativePosition.y + firstObstacleDepth;
-            if(obstacleDepth < obstacleSpawnDepth - player.distanceFallen)
+            bool isCheckpoint = obstacle.gameObject.tag == "Checkpoint";
+            if (obstacleDepth < obstacleSpawnDepth - player.distanceFallen)
             {
                 obstaclesToSpawn.Enqueue(obstacle);
-            } else if (obstacleDepth < obstacleProjectDepth -  player.distanceFallen)
+            }
+            else if (obstacleDepth < obstacleProjectDepth - player.distanceFallen)
             {
                 obstaclesToProject.Enqueue(obstacle);
+                if (isCheckpoint) // Checkpoint projectors get enabled at "spawn depth"
+                    obstacle.CreateProjector(checkpointProjectorPrefab, player);
                 obstacle.transform.position = new Vector3(obstacle.relativePosition.x,
                             (firstObstacleDepth) + obstacle.relativePosition.y + player.distanceFallen,
                             obstacle.relativePosition.z);
                 obstacle.gameObject.SetActive(true);
-            } else if (obstacleDepth < obstacleDespawnHeight - player.distanceFallen)
+            }
+            else if (obstacleDepth < obstacleDespawnHeight - player.distanceFallen)
             {
                 obstaclesToDespawn.Enqueue(obstacle);
-                obstacle.CreateProjector(obstacleProjectorPrefab, player);
+                if (!isCheckpoint) // Other projectors get enabled at the "project depth"
+                    obstacle.CreateProjector(obstacleProjectorPrefab, player);
                 obstacle.transform.position = new Vector3(obstacle.relativePosition.x,
                                             (firstObstacleDepth) + obstacle.relativePosition.y + player.distanceFallen,
                                             obstacle.relativePosition.z);
@@ -87,7 +95,8 @@ public class ObstacleSpawner : MonoBehaviour
             player.distanceFallen > -1 * (firstObstacleDepth + obstaclesToProject.Peek().relativePosition.y - obstacleProjectDepth))
         {
             Obstacle obstacleToProject = obstaclesToProject.Dequeue();
-            obstacleToProject.CreateProjector(obstacleProjectorPrefab, player);
+            if (obstacleToProject.gameObject.tag != "Checkpoint") // Most projectors get enabled at the "project depth"
+                obstacleToProject.CreateProjector(obstacleProjectorPrefab, player);
             obstaclesToDespawn.Enqueue(obstacleToProject);
         }
 
@@ -101,6 +110,10 @@ public class ObstacleSpawner : MonoBehaviour
             obstacleToSpawn.transform.position = new Vector3(obstacleToSpawn.relativePosition.x, obstacleSpawnDepth + spawnOffset,
                                                       obstacleToSpawn.relativePosition.z);
             obstacleToSpawn.gameObject.SetActive(true);
+            if (obstacleToSpawn.gameObject.tag == "Checkpoint") { // Checkpoint projectors get enabled at "spawn depth"
+                obstacleToSpawn.gameObject.GetComponent<MeshRenderer>().enabled = false;
+                obstacleToSpawn.CreateProjector(checkpointProjectorPrefab, player);
+            }
             obstaclesToProject.Enqueue(obstacleToSpawn);
         }
 

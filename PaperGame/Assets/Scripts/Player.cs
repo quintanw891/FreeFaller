@@ -207,7 +207,7 @@ public class Player : MonoBehaviour
         {
             //Offset each wall by the player's diagonal radius to ensure
             //no part of the player clips through walls.
-            Plane plane = new Plane(wall.gameObject.transform.forward,
+            Plane plane = new Plane(-wall.gameObject.transform.forward,
                                     wall.gameObject.transform.position);
             float bufferMultiple = 1.1f; // Add additional buffer space to avoid clipping
             plane = Plane.Translate(plane, plane.normal * (transform.lossyScale.x * Mathf.Sqrt(0.5f)) * -1 * bufferMultiple);

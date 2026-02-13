@@ -49,7 +49,7 @@ public class ObstacleStream : MonoBehaviour
         // Debug.Log("OnEnable cleanup complete cleanup queue size is " + cleanupQueue.Count);
         int numTiles = (int) Math.Ceiling(1f / tileToTunnelRatio) + 1;
 
-        //Transform firstTilePosition WILO
+        //Transform firstTilePosition WILO //Sep 2025 note: This may be where I was going to start using the 'position' and 'movement direction fields'
         // Debug.Log("OnEnable called and numTiles is "+ numTiles);
         for (int i=0; i<numTiles; i++)
         {
