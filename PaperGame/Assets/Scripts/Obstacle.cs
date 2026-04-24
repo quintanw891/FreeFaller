@@ -8,6 +8,8 @@ public class Obstacle : MonoBehaviour
     public Vector3 relativePosition; //position relative to other obstacles
     [HideInInspector]
     public bool spawn; //Should this obstacle spawn in the scene
+    [SerializeField]
+    private bool enableProjector = true;
 
     void Awake()
     {
@@ -24,8 +26,11 @@ public class Obstacle : MonoBehaviour
 
     public void CreateProjector(GameObject projectorPrefab, Player player)
     {
-        ObstacleProjector projector = Instantiate(projectorPrefab, transform).GetComponent<ObstacleProjector>();
-        projector.SetPlayer(player);
+        if (enableProjector)
+        {
+            ObstacleProjector projector = Instantiate(projectorPrefab, transform).GetComponent<ObstacleProjector>();
+            projector.SetPlayer(player);   
+        }
     }
 
     public string PrintMe()

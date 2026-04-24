@@ -27,6 +27,8 @@ public class ObstacleStream : MonoBehaviour
     private Queue<GameObject> tileQueue = new Queue<GameObject>();
     const float TUNNEL_2_SCALE_RATIO = 11;
 
+    private Transform obstaclesFolder;
+
     void OnEnable()
     {
         // This script runs in both editor and play mode in order to preview
@@ -38,7 +40,10 @@ public class ObstacleStream : MonoBehaviour
         // are dequeued.
         // As a workaround OnEnable will do this initial cleanup of any lingering child objects.
         Queue<GameObject> cleanupQueue = new Queue<GameObject>();
-        foreach(Transform child in gameObject.transform ) {
+        obstaclesFolder = transform.Find("ObstaclesFolder");
+        foreach (Transform child in obstaclesFolder)
+        {
+            // Debug.Log("ObstacleStream is cleaning up: " + child.gameObject.name);
             cleanupQueue.Enqueue(child.gameObject);
         }
         // Debug.Log("OnEnable cleanup starting. cleaning up " + cleanupQueue.Count);
@@ -53,8 +58,9 @@ public class ObstacleStream : MonoBehaviour
         // Debug.Log("OnEnable called and numTiles is "+ numTiles);
         for (int i=0; i<numTiles; i++)
         {
-            GameObject tile = Instantiate(tilePrefab, transform, false);
+            GameObject tile = Instantiate(tilePrefab, obstaclesFolder, false);
 
+            // Position tile at proper offset
             tile.transform.position =   tile.transform.position +
                                         (   transform.right * tile.transform.localScale.x *
                                             TUNNEL_2_SCALE_RATIO * tileToTunnelRatio * i);
@@ -112,27 +118,30 @@ public class ObstacleStream : MonoBehaviour
         {
             foreach (GameObject tile in tileQueue)
             {
-                tile.transform.position =   tile.transform.position +
-                                            (   transform.right * -1 * tilePrefab.transform.localScale.x *
+                // Perform the sliding motion
+                tile.transform.position = tile.transform.position +
+                                            (transform.right * -1 * tilePrefab.transform.localScale.x *
                                                 TUNNEL_2_SCALE_RATIO * speed *
                                                 Time.deltaTime);
             }
         }
 
-        if (tileQueue.Count != 0) {
-            float tileOffset =  (   tileQueue.Peek().transform.position.x +
+        // Check if leading tile is no longer in the tunnel, if so rotate it to the back of the queue
+        if (tileQueue.Count != 0)
+        {
+            float tileOffset = (tileQueue.Peek().transform.position.x +
                                     (tilePrefab.transform.localScale.x * TUNNEL_2_SCALE_RATIO * tileToTunnelRatio)) -
                                 transform.position.x;
 
-            if ( tileOffset <= 0 )
+            if (tileOffset <= 0)
             {
                 int numTiles = tileQueue.Count;
                 GameObject tileToRotate = tileQueue.Dequeue();
-                tileToRotate.transform.position =   tileToRotate.transform.position +
-                                                    (   transform.right * tilePrefab.transform.localScale.x *
+                tileToRotate.transform.position = tileToRotate.transform.position +
+                                                    (transform.right * tilePrefab.transform.localScale.x *
                                                         TUNNEL_2_SCALE_RATIO * tileToTunnelRatio * numTiles);
                 tileQueue.Enqueue(tileToRotate);
-            } 
+            }
         }
     }
 }
