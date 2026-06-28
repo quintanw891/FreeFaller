@@ -13,6 +13,7 @@ public class Player : MonoBehaviour
     // Movement fields
     [SerializeField]
     private MovementMode movementMode = MovementMode.Simple;
+    private const float DEADZONE_MAGNITUDE = 0.15f;
     // Vertical
     public float baseFallSpeed;
     [HideInInspector]
@@ -131,7 +132,9 @@ public class Player : MonoBehaviour
                     break;
                 case MovementMode.Simple:
                 default:
-                    tiltMagnitude = tiltInput.magnitude;
+                    // calculate tilt magnitude as interpolation btwn deadzone (0)  and full input tilt (1)
+                    tiltMagnitude = tiltInput.magnitude <= DEADZONE_MAGNITUDE ? 0
+                        : (tiltInput.magnitude - DEADZONE_MAGNITUDE) / (1.0f - DEADZONE_MAGNITUDE);
                     maxTilt = 0.5f;
                     tiltAddedVerticalSpeed = 0f;
                     lateralSpeed = tiltMagnitude * maxLateralSpeed;
@@ -145,7 +148,7 @@ public class Player : MonoBehaviour
             }
 
             // Update the orientation of the player
-            if (tiltInput.magnitude == 0) // No Input
+            if (lateralSpeed == 0) // No Movement
             {
                 transform.eulerAngles = new Vector3(tiltMagnitude * 90, transform.eulerAngles.y, 0);
             }
